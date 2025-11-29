@@ -1,12 +1,12 @@
 # app.py
 from flask import Flask, request, jsonify
-
+from solver import solve_quiz
 app = Flask(__name__)
 
-# !!! REPLACE WITH YOUR ACTUAL CREDENTIALS (STEP 5) !!!
-STUDENT_EMAIL = "24f2005372@ds.study.iitm.ac.in" # <--- REPLACE THIS (KEEP THE QUOTES!)
-STUDENT_SECRET = "visishtp2"    # <--- REPLACE THIS (KEEP THE QUOTES!)
-# ------------------------------------------
+
+STUDENT_EMAIL = "24f2005372@ds.study.iitm.ac.in" 
+STUDENT_SECRET = "visishtp2" 
+
 
 @app.route('/', methods=['GET'])
 def status_check():
@@ -28,8 +28,16 @@ def handle_quiz_request():
 
     # CHECK 1: The secret key must match yours.
     if secret != STUDENT_SECRET or email != STUDENT_EMAIL:
-        return jsonify({"error": "Invalid secret or email"}), 403 # Error 403 is for unauthorized
+            try:
+                print(f"Starting quiz for URL: {quiz_url}")
+                result = solve_quiz(email, secret, quiz_url)
+                print(f"Quiz result: {result}")
+                # Return 200 immediately, even if the solver failed, to confirm API structure works.
+                return jsonify({"message": "Solver initiated and completed (check logs for outcome).", "result": result}), 200
 
+            except Exception as e:
+                print(f"An unexpected error occurred in the solver: {e}")
+                return jsonify({"error": "Internal server error during quiz solving."}), 500
     if not quiz_url:
         return jsonify({"error": "Missing quiz URL"}), 400
 
